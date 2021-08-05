@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>978</width>
+    <height>679</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -51,18 +51,55 @@
       </item>
       <item>
        <widget class="QLabel" name="inputFileLabel">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
         <property name="text">
          <string>Input File:</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLineEdit" name="filePathDisplay"/>
+       <widget class="QLineEdit" name="filePathDisplay">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">border: 1px solid gray;
+border-radius: 5px;
+padding: 1px 18px 1px 3px;
+min-width: 6em;</string>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QPushButton" name="browseFilesButton">
         <property name="cursor">
          <cursorShape>PointingHandCursor</cursorShape>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton#browseFilesButton {
+    background-color: rgb(0, 135, 247);
+	color: white;
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: grey;
+    font: 14px;
+    min-width: 6em;
+    padding: 6px;
+}
+
+QPushButton#browseFilesButton:pressed {
+	background-color: rgb(0, 109, 222);
+}
+
+</string>
         </property>
         <property name="text">
          <string>Browse Files</string>
@@ -76,6 +113,22 @@
        <widget class="QPushButton" name="runProgramButton">
         <property name="cursor">
          <cursorShape>PointingHandCursor</cursorShape>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton#runProgramButton {
+    background-color: rgb(0, 135, 247);
+	color: white;
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: grey;
+    font: 14px;
+    min-width: 6em;
+    padding: 6px;
+}
+
+QPushButton#runProgramButton:pressed {
+	background-color: rgb(0, 109, 222);
+}</string>
         </property>
         <property name="text">
          <string>Run Program</string>
@@ -136,8 +189,27 @@
       </item>
       <item>
        <widget class="QProgressBar" name="progressBar">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QProgressBar {
+	background-color: rgb(190, 211, 240);
+	border-style: none;
+	border-radius:10px;
+	text-align: center;
+	color: rgb(255, 255, 255);
+}
+
+QProgressBar::chunk {
+	border-radius: 10px;
+	background-color: qlineargradient(spread:pad, x1:0, y1:0.511, x2:1, y2:0.506, stop:0 rgba(0, 85, 255, 255), stop:1 rgba(0, 170, 255, 255));
+}</string>
+        </property>
         <property name="value">
-         <number>24</number>
+         <number>25</number>
         </property>
        </widget>
       </item>
@@ -194,7 +266,22 @@
        </spacer>
       </item>
       <item>
-       <widget class="QComboBox" name="comboBox"/>
+       <widget class="QComboBox" name="comboBox">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QComboBox {
+    border: 1px solid gray;
+    border-radius: 5px;
+    padding: 1px 18px 1px 3px;
+    min-width: 6em;
+}
+</string>
+        </property>
+       </widget>
       </item>
       <item>
        <spacer name="horizontalSpacer_5">
@@ -255,6 +342,11 @@
     </item>
     <item>
      <widget class="QLabel" name="resultLabel">
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
       <property name="text">
        <string>Result:</string>
       </property>
@@ -265,6 +357,11 @@
     </item>
     <item>
      <widget class="QLabel" name="confidenceLevelLabel">
+      <property name="font">
+       <font>
+        <pointsize>12</pointsize>
+       </font>
+      </property>
       <property name="text">
        <string>Confidence Level:</string>
       </property>
@@ -293,7 +390,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>978</width>
      <height>21</height>
     </rect>
    </property>
