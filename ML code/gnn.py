@@ -30,7 +30,7 @@ for ij in np.ndindex(tangent_matrices.shape):
 
 n_samples = labels.shape[0]
 y=labels
-# X=...
+X=np.array([i for i in range(111)])
 #%%
 
 import scipy.sparse as sp
@@ -58,22 +58,31 @@ batch_size = 32  # Batch size
 #%%
 
 class MyDataset(Dataset):
-    def __init__(self, n_samples, X, y, a, **kwargs):
+    def __init__(self, n_samples,X, y, a, **kwargs):
         self.n_samples = n_samples
-        self.X = X
-        self.y = y
-        self.a = a
+        self.nodeFeatures = X
+        self.labels = y
+        self.adjMatrix = a
         super().__init__(**kwargs)
     
     def read(self):
         # X = node features
         # a = adjacency matrix
         # y = labels
-
+        
         # return a list of Graph objects
-        return [Graph(x=self.X, a=self.a, y=self.y) for _ in range(self.n_samples)]
+        graphList = []
+        a = self.adjMatrix.astype(int)
+        
+        X = self.nodeFeatures
+        y = self.labels
+        # for _ in range(self.n_samples):
+        for node in a:
+            graphList.append(Graph(x=X, a=node, y=y))
+        return graphList
 
-data = MyDataset(1000, transforms=NormalizeAdj())
+data = MyDataset(871, X, y, a=tangent_matrices, transforms=NormalizeAdj())
+
 
 # Train/valid/test split
 idxs = np.random.permutation(len(data))
