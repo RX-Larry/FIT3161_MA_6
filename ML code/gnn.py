@@ -2,21 +2,37 @@
 """
 Created on Fri Aug 13 19:00:57 2021
 
-@author: peiji
+@author: peijiun
 """
 
-# from spektral.datasets import TUDataset
-# from spektral.transforms import GCNFilter
+import pickle
+import numpy as np
+import matplotlib.pyplot as plt
+from nilearn import plotting
 
-# dataset = TUDataset('PROTEINS')
-# dataset[0]
-# max_degree = dataset.map(lambda g: g.a.sum(-1).max(), reduce=max)
+# Load data from the pickle file
+datapath = 'data/connectivity_matrices.pkl'
+with open(datapath,'rb') as f:
+    conn_data = pickle.load(f)
 
-# dataset.apply(GCNFilter())
+tangent_matrices = conn_data['FC']
+labels = conn_data['labels']
 
+threshold = 0.15
+lower=0
+upper=1
+for ij in np.ndindex(tangent_matrices.shape):
+    tangent_matrices[ij] = np.where(tangent_matrices[ij]>threshold, upper, lower)
+
+# tangent matrix plot
+# plotting.plot_matrix(tangent_matrices[0], figure=(50, 50), labels=range(111),
+#                      vmax=0.8, vmin=-0.8, reorder=True)
+
+n_samples = labels.shape[0]
+y=labels
+# X=...
 #%%
 
-import numpy as np
 import scipy.sparse as sp
 import tensorflow as tf
 
