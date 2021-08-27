@@ -29,7 +29,7 @@ labels[labels>1]=0
 # =============================================================================
 
 # Tangent
-tangent_estimator = ConnectivityMeasure(kind='tangent')
+tangent_estimator = ConnectivityMeasure(kind='correlation')
 tangent_matrices = tangent_estimator.fit_transform(ts_data)
 
 #Plot the correlations for the first 40 subjects
