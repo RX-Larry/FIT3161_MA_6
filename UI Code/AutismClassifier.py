@@ -8,15 +8,16 @@ import nibabel as nib
 from nilearn import decomposition,plotting,image,input_data
 from nilearn.connectome import ConnectivityMeasure
 from tensorflow.keras.models import load_model
-import timeit
 
 img=None
 
+# A worker class that will contain the model prediction code.
 class Worker(QObject):
     finished = pyqtSignal()
     progress = pyqtSignal(int)
     prediction = pyqtSignal(str)
 
+    # A run method that contains all the model prediction related code.
     def run(self):
         global img
         canica = decomposition.CanICA(n_components=111,
@@ -46,6 +47,7 @@ class Worker(QObject):
 
         self.progress.emit(94)
 
+        #Building the correlation matrix from the time series
         correlation_measure = ConnectivityMeasure(kind='correlation')
         correlation_matrix = correlation_measure.fit_transform(time_series)
 
@@ -56,10 +58,8 @@ class Worker(QObject):
         model = load_model('C:/Users/ishoo/Desktop/UNI/FYP 2/Code stuff/best_model.hdf5')
         result = model.predict(x=correlation_matrix,verbose=0).squeeze()
         if result >=0.5:
-            print("Yes")
             self.prediction.emit("Yes")
         else:
-            print("No")
             self.prediction.emit("No")
 
         self.progress.emit(100)
@@ -94,13 +94,15 @@ class AutismClassifier(QMainWindow):
         )
 
         x = aboutPage.exec_()
-
+    
+    # A method that implements the functionality of openning a file for the "Browse Files" button.
     def browseFiles(self):
         self.filename = QFileDialog.getOpenFileName(self, "Open file", "C:/Users")
         self.filePathDisplay.setText(self.filename[0])
 
+    # A method that implements the login for the "Run Program" button.
     def progressBarLoading(self, n):
-        self.resetButtons()
+        self.resetComponents()
         global img
 
         # Opens the raw fMRI data file in .nii format
@@ -140,13 +142,16 @@ class AutismClassifier(QMainWindow):
             lambda: self.browseFilesButton.setDisabled(False)
         )
 
+    # A method that updates the progress of the progress bar.
     def updateProgress(self,i):
         self.progressBar.setValue(i)
 
-    def resetButtons(self):
+    # A method that resets the progress bar and result text state.
+    def resetComponents(self):
         self.progressBar.setValue(0)
         self.resultLabel.setText("Result: ")
 
+    # A method that updates the result text with the outcome of the prediction.
     def updatePredictionResult(self,result):
         self.resultLabel.setText("Result: "+result)
 
