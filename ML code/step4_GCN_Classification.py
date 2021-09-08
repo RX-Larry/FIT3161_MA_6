@@ -9,12 +9,14 @@ import pandas as pd
 import numpy as np
 import argparse
 import os
+import random
 
 from stellargraph.mapper import PaddedGraphGenerator
 from stellargraph.layer import DeepGraphCNN, GCNSupervisedGraphClassification
 from stellargraph import StellarGraph
 
 from sklearn import model_selection
+import tensorflow as tf
 from tensorflow.keras import Model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.layers import Dense, Conv1D, MaxPool1D, Dropout, Flatten
@@ -30,7 +32,12 @@ if not os.path.exists(RES_DIR):
     os.makedirs(RES_DIR)
 MODEL_DIR = 'models/gcn/'
 os.makedirs(MODEL_DIR, exist_ok=True)
-SEED = 330
+
+SEED = 5000
+
+np.random.seed(SEED)
+random.seed(SEED)
+tf.random.set_seed(SEED)
 
 
 def _info(s):
@@ -100,7 +107,7 @@ def load_data():
 
 def create_model(generator):
     gc_model = GCNSupervisedGraphClassification(
-         layer_sizes=[64, 64],
+         layer_sizes=[111, 111],
          activations=["relu", "relu"],
          generator=generator,
          dropout=0.5
@@ -109,25 +116,10 @@ def create_model(generator):
     predictions = Dense(units=32, activation="relu")(x_out)
     predictions = Dense(units=16, activation="relu")(predictions)
     predictions = Dense(units=1, activation="sigmoid")(predictions)
-   # gc_model = DeepGraphCNN(
-   #               layer_sizes=[32, 32, 32, 1],
-   #               activations=["tanh","tanh", "tanh", "tanh"],
-   #               generator=generator,
-   #               k=30
-   #  )
-
-
-   # x_out = Conv1D(filters=16, kernel_size=97, strides=97)(x_out)
-   # x_out = MaxPool1D(pool_size=2)(x_out)
-   # x_out = Conv1D(filters=32, kernel_size=5, strides=1)(x_out)
-   # x_out = Flatten()(x_out)
-   # x_out = Dense(units=128, activation="relu")(x_out)
-   # x_out = Dropout(rate=0.5)(x_out)
-   # predictions = Dense(units=1, activation="sigmoid")(x_out)
 
     # Let's create the Keras model and prepare it for training
     model = Model(inputs=x_inp, outputs=predictions)
-    model.compile(optimizer=Adam(0.001), loss='categorical_crossentropy', 
+    model.compile(optimizer=Adam(0.01), loss='categorical_crossentropy', 
                  metrics=["accuracy"])
     plot_model(model, to_file=MODEL_DIR+'gcn_model.png', show_shapes=True)
     return model
@@ -170,12 +162,15 @@ def run():
     filename = MODEL_DIR + 'best_model.hdf5'
     checkpointer = ModelCheckpoint(filepath=filename, monitor='val_loss', verbose=1,  
                                    save_best_only=True, save_weights_only=True)
+    
     earlystopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=40, verbose=1,
             mode='auto', baseline=None, restore_best_weights=False)
     
     history = model.fit(
             train_gen, validation_data=val_gen, shuffle=False, epochs=100, verbose=1,
             callbacks=[checkpointer,earlystopping])
+    
+    model.save("model/gcn_model")
     
      #prediction
     _info('Test GCN model')
@@ -191,6 +186,10 @@ def run():
     Rec = recall_score(test_targets,y_pred)
     F1 = f1_score(test_targets,y_pred)
     ROC = roc_auc_score(test_targets,y_pred)
+    
+    saved_model = tf.keras.models.load_model("model/gcn_model")
+    saved_model.summary()
+    
     
     
     _info('Print Results')
