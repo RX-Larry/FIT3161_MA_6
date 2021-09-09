@@ -10,6 +10,7 @@ import numpy as np
 import argparse
 import os
 import random
+import matplotlib.pyplot as plt
 
 from stellargraph.mapper import PaddedGraphGenerator
 from stellargraph.layer import DeepGraphCNN, GCNSupervisedGraphClassification
@@ -146,13 +147,13 @@ def run():
     train_targets = train_subjects.values
     val_targets = val_subjects.values
     test_targets = test_subjects.values
+
     
     # Prepare graph generator
     generator = PaddedGraphGenerator(graphs=graphs)#FullBatchNodeGenerator(G, method="gat", sparse=False)
     train_gen = generator.flow(train_subjects.index, train_targets,batch_size=32)
     val_gen = generator.flow(val_subjects.index, val_targets,batch_size=32)
     test_gen = generator.flow(test_subjects.index, test_targets)
-    
     
      #train model
     model = create_model(generator)
@@ -169,35 +170,61 @@ def run():
     history = model.fit(
             train_gen, validation_data=val_gen, shuffle=False, epochs=100, verbose=1,
             callbacks=[checkpointer,earlystopping])
+
+    # summarize history for accuracy
+    plt.plot(history.history['accuracy'])
+    plt.plot(history.history['val_accuracy'])
+    plt.title('model accuracy')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.show()
+    # summarize history for loss
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.show()
     
     model.save("model/gcn_model")
     
      #prediction
     _info('Test GCN model')
     del model
-    generator = PaddedGraphGenerator(graphs=graphs)#FullBatchNodeGenerator(G, method="gat", sparse=False)
-    model = create_model(generator)
-    model.load_weights(filename)
-    predictions = model.predict(test_gen,verbose=0).squeeze()
-    y_pred = [1 if predictions[i] >= 0.5 else 0 for i in range(len(predictions))]
     
-    Acc = accuracy_score(test_targets,y_pred)
-    Pre = precision_score(test_targets,y_pred) 
-    Rec = recall_score(test_targets,y_pred)
-    F1 = f1_score(test_targets,y_pred)
-    ROC = roc_auc_score(test_targets,y_pred)
+    # ADRIAN convert connectivity matrices to graph 1st before predicting 
+    # and graphs must be an arr, so graphs=[1 graph]
+    generator = PaddedGraphGenerator(graphs=graphs)
+    test_gen=generator.flow([0], [0])
     
     saved_model = tf.keras.models.load_model("model/gcn_model")
     saved_model.summary()
+    predictions=saved_model.predict(test_gen, verbose=0).squeeze()
+    print("Predictions = {:.2}".format(predictions))
+    
+    # generator = PaddedGraphGenerator(graphs=graphs)#FullBatchNodeGenerator(G, method="gat", sparse=False)
+    # model = create_model(generator)
+    # model.load_weights(filename)
+    # predictions = model.predict(test_gen,verbose=0).squeeze()
+    # y_pred = [1 if predictions[i] >= 0.5 else 0 for i in range(len(predictions))]
+    
+    # Acc = accuracy_score(test_targets,y_pred)
+    # Pre = precision_score(test_targets,y_pred) 
+    # Rec = recall_score(test_targets,y_pred)
+    # F1 = f1_score(test_targets,y_pred)
+    # ROC = roc_auc_score(test_targets,y_pred)
     
     
+    # _info('Print Results')
+    # print('Accuracy  = {:.2%}'.format(Acc))
+    # print('Precision = {:.2%}'.format(Pre))
+    # print('Recall    = {:.2%}'.format(Rec))
+    # print('F1_score  = {:.2%}'.format(F1))
+    # print('ROC_AUC  = {:.2%}'.format(ROC))
     
-    _info('Print Results')
-    print('Accuracy  = {:.2%}'.format(Acc))
-    print('Precision = {:.2%}'.format(Pre))
-    print('Recall    = {:.2%}'.format(Rec))
-    print('F1_score  = {:.2%}'.format(F1))
-    print('ROC_AUC  = {:.2%}'.format(ROC))
+    
     
     
     
