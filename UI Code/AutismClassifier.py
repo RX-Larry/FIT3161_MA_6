@@ -132,7 +132,6 @@ class Worker(QObject):
         test_gen=generator.flow([0])
         # Loading the model
         saved_model = tf.keras.models.load_model("C:/Users/ishoo/Desktop/UNI/FYP 2/Code stuff/model/gcn_model")
-        saved_model.summary()
         # Predicting the label of the user input fMRI
         result=saved_model.predict(test_gen, verbose=0).squeeze()
         if result >=0.5:
@@ -188,43 +187,84 @@ class AutismClassifier(QMainWindow):
         self.resetComponents()
         global img
 
+        # # Opens the raw fMRI data file in .nii format
+        # if (self.filename!=None):
+        #     img = nib.load(self.filename[0])
+        #     # https://realpython.com/python-pyqt-qthread/#communicating-with-worker-qthreads
+        #     # Creating a QThread object for the background thread
+        #     self.thread = QThread()
+            
+        #     # Creating a worker object that will run the model prediction code
+        #     self.worker = Worker()
+            
+        #     # Move worker to the thread
+        #     self.worker.moveToThread(self.thread)
+            
+        #     # Connect signals and slots
+        #     self.thread.started.connect(self.worker.run)
+        #     self.worker.finished.connect(self.thread.quit)
+        #     self.worker.finished.connect(self.worker.deleteLater)
+        #     self.thread.finished.connect(self.thread.deleteLater)
+        #     self.worker.progress.connect(self.updateProgress)
+        #     self.worker.prediction.connect(self.updatePredictionResult)
+        #     self.worker.showPlot.connect(self.showPlot)
+            
+        #     # Start the thread
+        #     self.thread.start()
+
+        #     # Disable the buttons
+        #     self.runProgramButton.setDisabled(True)
+        #     self.browseFilesButton.setDisabled(True)
+
+        #     # Enabling back the buttons after the model finished predicting
+        #     self.thread.finished.connect(
+        #         lambda: self.runProgramButton.setDisabled(False)
+        #     )
+        #     self.thread.finished.connect(
+        #         lambda: self.browseFilesButton.setDisabled(False)
+        #     )
         # Opens the raw fMRI data file in .nii format
-        if (self.filename!=None):
-            img = nib.load(self.filename[0])
+        if (self.filename==None):
+            self.fileErrorLabel.setText("Please insert a nii.gz format compressed fMRI data file")
+        else:
+            if (self.filename[0].endswith('.nii.gz')==False):
+                self.fileErrorLabel.setText("Please insert a nii.gz format compressed fMRI data file")
+            else:
+                self.fileErrorLabel.clear()
+                img = nib.load(self.filename[0])
+                # https://realpython.com/python-pyqt-qthread/#communicating-with-worker-qthreads
+                # Creating a QThread object for the background thread
+                self.thread = QThread()
+                
+                # Creating a worker object that will run the model prediction code
+                self.worker = Worker()
+                
+                # Move worker to the thread
+                self.worker.moveToThread(self.thread)
+                
+                # Connect signals and slots
+                self.thread.started.connect(self.worker.run)
+                self.worker.finished.connect(self.thread.quit)
+                self.worker.finished.connect(self.worker.deleteLater)
+                self.thread.finished.connect(self.thread.deleteLater)
+                self.worker.progress.connect(self.updateProgress)
+                self.worker.prediction.connect(self.updatePredictionResult)
+                self.worker.showPlot.connect(self.showPlot)
+                
+                # Start the thread
+                self.thread.start()
 
-        # https://realpython.com/python-pyqt-qthread/#communicating-with-worker-qthreads
-        # Creating a QThread object for the background thread
-        self.thread = QThread()
-        
-        # Creating a worker object that will run the model prediction code
-        self.worker = Worker()
-        
-        # Move worker to the thread
-        self.worker.moveToThread(self.thread)
-        
-        # Connect signals and slots
-        self.thread.started.connect(self.worker.run)
-        self.worker.finished.connect(self.thread.quit)
-        self.worker.finished.connect(self.worker.deleteLater)
-        self.thread.finished.connect(self.thread.deleteLater)
-        self.worker.progress.connect(self.updateProgress)
-        self.worker.prediction.connect(self.updatePredictionResult)
-        self.worker.showPlot.connect(self.showPlot)
-        
-        # Start the thread
-        self.thread.start()
+                # Disable the buttons
+                self.runProgramButton.setDisabled(True)
+                self.browseFilesButton.setDisabled(True)
 
-        # Disable the buttons
-        self.runProgramButton.setDisabled(True)
-        self.browseFilesButton.setDisabled(True)
-
-        # Enabling back the buttons after the model finished predicting
-        self.thread.finished.connect(
-            lambda: self.runProgramButton.setDisabled(False)
-        )
-        self.thread.finished.connect(
-            lambda: self.browseFilesButton.setDisabled(False)
-        )
+                # Enabling back the buttons after the model finished predicting
+                self.thread.finished.connect(
+                    lambda: self.runProgramButton.setDisabled(False)
+                )
+                self.thread.finished.connect(
+                    lambda: self.browseFilesButton.setDisabled(False)
+                )
 
     # A method that updates the progress of the progress bar.
     def updateProgress(self,i):
@@ -232,6 +272,7 @@ class AutismClassifier(QMainWindow):
 
     # A method that resets the progress bar and result text state.
     def resetComponents(self):
+        self.fileErrorLabel.clear()
         self.diagram.clear()
         self.progressBar.setValue(0)
         self.resultLabel.clear()
