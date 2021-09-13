@@ -1,11 +1,10 @@
 import sys
 from PyQt5.uic import loadUi
-from PyQt5 import QtWidgets,QtCore
 from PyQt5.QtWidgets import QApplication, QFileDialog, QMainWindow, QMessageBox,QLabel
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
-from PyQt5.QtGui import QPixmap, QFont
+from PyQt5.QtGui import QPixmap
 import nibabel as nib
-from nilearn import decomposition,plotting,image,input_data
+from nilearn import decomposition,plotting,input_data
 from nilearn.connectome import ConnectivityMeasure
 import os
 from stellargraph import StellarGraph
@@ -131,7 +130,7 @@ class Worker(QObject):
         generator = PaddedGraphGenerator(graphs=graphs)
         test_gen=generator.flow([0])
         # Loading the model
-        saved_model = tf.keras.models.load_model("C:/Users/ishoo/Desktop/UNI/FYP 2/Code stuff/model/gcn_model")
+        saved_model = tf.keras.models.load_model("model/gcn_model")
         # Predicting the label of the user input fMRI
         result=saved_model.predict(test_gen, verbose=0).squeeze()
         if result >=0.5:
@@ -161,11 +160,6 @@ class AutismClassifier(QMainWindow):
         )
         self.filename=None
 
-        self.diagram.setFont(QFont('MS Shell Dlg 2',14))
-        self.diagram.setAlignment(QtCore.Qt.AlignCenter)
-
-        self.resultLabel.clear()
-
     def openAboutWindow(self):
         aboutPage = QMessageBox()
         aboutPage.setWindowTitle("About")
@@ -187,52 +181,18 @@ class AutismClassifier(QMainWindow):
         self.resetComponents()
         global img
 
-        # # Opens the raw fMRI data file in .nii format
-        # if (self.filename!=None):
-        #     img = nib.load(self.filename[0])
-        #     # https://realpython.com/python-pyqt-qthread/#communicating-with-worker-qthreads
-        #     # Creating a QThread object for the background thread
-        #     self.thread = QThread()
-            
-        #     # Creating a worker object that will run the model prediction code
-        #     self.worker = Worker()
-            
-        #     # Move worker to the thread
-        #     self.worker.moveToThread(self.thread)
-            
-        #     # Connect signals and slots
-        #     self.thread.started.connect(self.worker.run)
-        #     self.worker.finished.connect(self.thread.quit)
-        #     self.worker.finished.connect(self.worker.deleteLater)
-        #     self.thread.finished.connect(self.thread.deleteLater)
-        #     self.worker.progress.connect(self.updateProgress)
-        #     self.worker.prediction.connect(self.updatePredictionResult)
-        #     self.worker.showPlot.connect(self.showPlot)
-            
-        #     # Start the thread
-        #     self.thread.start()
-
-        #     # Disable the buttons
-        #     self.runProgramButton.setDisabled(True)
-        #     self.browseFilesButton.setDisabled(True)
-
-        #     # Enabling back the buttons after the model finished predicting
-        #     self.thread.finished.connect(
-        #         lambda: self.runProgramButton.setDisabled(False)
-        #     )
-        #     self.thread.finished.connect(
-        #         lambda: self.browseFilesButton.setDisabled(False)
-        #     )
-        # Opens the raw fMRI data file in .nii format
+        # If the user did not insert any file to the app and he pressed 'Run program', then display error message
         if (self.filename==None):
             self.fileErrorLabel.setText("Please insert a nii.gz format compressed fMRI data file")
         else:
+            # If the format of the file insert by the user is not nii.gz and he pressed 'Run program', then display error message
             if (self.filename[0].endswith('.nii.gz')==False):
-                self.fileErrorLabel.setText("Please insert a nii.gz format compressed fMRI data file")
+                self.fileErrorLabel.setText("The file format must be nii.gz")
+            # If the user inserts a raw compressed fMRI data file in .nii.gz format, then open it and do the prediction
             else:
                 self.fileErrorLabel.clear()
                 img = nib.load(self.filename[0])
-                # https://realpython.com/python-pyqt-qthread/#communicating-with-worker-qthreads
+
                 # Creating a QThread object for the background thread
                 self.thread = QThread()
                 
