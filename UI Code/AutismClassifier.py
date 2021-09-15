@@ -174,6 +174,7 @@ class AutismClassifier(QMainWindow):
     # A method that implements the functionality of openning a file for the "Browse Files" button.
     def browseFiles(self):
         self.filename = QFileDialog.getOpenFileName(self, "Open file", "C:/Users")
+        print(self.filename)
         self.filePathDisplay.setText(self.filename[0])
 
     # A method that implements the login for the "Run Program" button.
@@ -250,12 +251,9 @@ class AutismClassifier(QMainWindow):
         self.diagram.resize(700,500)
 
 
-def main():
+if __name__ == '__main__':
     app = QApplication(sys.argv)
     mainScreen = AutismClassifier()
     mainScreen.show()
     mainScreen.showNormal()
     sys.exit(app.exec_())
-
-
-main()
