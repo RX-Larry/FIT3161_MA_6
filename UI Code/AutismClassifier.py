@@ -1,6 +1,6 @@
 import sys
 from PyQt5.uic import loadUi
-from PyQt5.QtWidgets import QApplication, QFileDialog, QMainWindow, QMessageBox,QLabel
+from PyQt5.QtWidgets import QApplication, QFileDialog, QMainWindow, QMessageBox
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 from PyQt5.QtGui import QPixmap
 import nibabel as nib
@@ -115,10 +115,15 @@ class Worker(QObject):
         # Building the correlation matrix from the time series
         correlation_measure = ConnectivityMeasure(kind='correlation')
         correlation_matrix = correlation_measure.fit_transform(time_series)
-
         connectivity_plot=plotting.plot_matrix(correlation_matrix[0], labels=range(1,112), colorbar=True,
                   vmax=0.8, vmin=-0.8)
         connectivity_plot.figure.savefig('matrix.png')
+
+        #Getting the center coordinates from the component decomposition to use as atlas labels
+        coords = plotting.find_probabilistic_atlas_cut_coords(components)
+        #Plotting the connectome with 80% edge strength in the connectivity
+        connectome_plot=plotting.plot_connectome(correlation_matrix[0], coords, edge_threshold="50%", title='Correlation between 111 brain regions')
+        connectome_plot.savefig('connectome.png')
         self.showPlot.emit()
 
         self.progress.emit(97)
@@ -133,10 +138,11 @@ class Worker(QObject):
         saved_model = tf.keras.models.load_model("model/gcn_model")
         # Predicting the label of the user input fMRI
         result=saved_model.predict(test_gen, verbose=0).squeeze()
+        result_text="Result: The probability that Autism Spectrum Disorder Category was detected in the subject is " + "{:.0%}".format(result) + "."
         if result >=0.5:
-            self.prediction.emit("Result: Autism Spectrum Disorder Category detected")
+            self.prediction.emit(result_text + " \nTherefore, it can be concluded that the subject has Autism Spectrum Disorder.")
         else:
-            self.prediction.emit("Result: Normal Category detected")
+            self.prediction.emit(result_text + " \nTherefore, it can be concluded that the subject does not have Autism Spectrum Disorder.")
 
         self.progress.emit(100)
 
@@ -159,6 +165,10 @@ class AutismClassifier(QMainWindow):
             lambda status, n_size=n: self.progressBarLoading(n_size)
         )
         self.filename=None
+        vis_list=["", "Connectivity Matrix", "Connectome on Top of The Brain Class Schematics"]
+        self.visComboBox.addItems(vis_list)
+        self.visComboBox.setDisabled(True)
+        self.visComboBox.activated.connect(self.selectVisToDisplay)
 
     def openAboutWindow(self):
         aboutPage = QMessageBox()
@@ -174,7 +184,6 @@ class AutismClassifier(QMainWindow):
     # A method that implements the functionality of openning a file for the "Browse Files" button.
     def browseFiles(self):
         self.filename = QFileDialog.getOpenFileName(self, "Open file", "C:/Users")
-        print(self.filename)
         self.filePathDisplay.setText(self.filename[0])
 
     # A method that implements the login for the "Run Program" button.
@@ -218,6 +227,8 @@ class AutismClassifier(QMainWindow):
                 # Disable the buttons
                 self.runProgramButton.setDisabled(True)
                 self.browseFilesButton.setDisabled(True)
+                self.visComboBox.setDisabled(True)
+                self.visComboBox.setCurrentText("")
 
                 # Enabling back the buttons after the model finished predicting
                 self.thread.finished.connect(
@@ -225,6 +236,9 @@ class AutismClassifier(QMainWindow):
                 )
                 self.thread.finished.connect(
                     lambda: self.browseFilesButton.setDisabled(False)
+                )
+                self.thread.finished.connect(
+                    lambda: self.visComboBox.setDisabled(False)
                 )
 
     # A method that updates the progress of the progress bar.
@@ -237,8 +251,9 @@ class AutismClassifier(QMainWindow):
         self.diagram.clear()
         self.progressBar.setValue(0)
         self.resultLabel.clear()
-        if os.path.exists("matrix.png"):
-            os.remove("matrix.png")
+        for vis_file in ["matrix.png", "connectome.png"]:
+            if os.path.exists(vis_file):
+                os.remove(vis_file)
 
     # A method that updates the result text with the outcome of the prediction.
     def updatePredictionResult(self,result):
@@ -246,10 +261,20 @@ class AutismClassifier(QMainWindow):
 
     # A method that displays the connectivity matrix plot on the app.
     def showPlot(self):
-        pixmap = QPixmap('matrix.png')
+        pixmap = QPixmap('connectome.png')
         self.diagram.setPixmap(pixmap)
         self.diagram.resize(700,500)
 
+    def selectVisToDisplay(self):
+        current_vis=self.visComboBox.currentText()
+        if (current_vis=="Connectivity Matrix"):
+            pixmap = QPixmap('matrix.png')
+        elif (current_vis=="Connectome on Top of The Brain Class Schematics"):
+            pixmap = QPixmap('connectome.png')
+
+        if (current_vis in ["Connectivity Matrix", "Connectome on Top of The Brain Class Schematics"]):
+            self.diagram.setPixmap(pixmap)
+            self.diagram.resize(700,500)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
