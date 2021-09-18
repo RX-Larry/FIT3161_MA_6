@@ -303,6 +303,11 @@ QProgressBar::chunk {
       </item>
       <item>
        <widget class="QComboBox" name="visComboBox">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
         <property name="editable">
          <bool>false</bool>
         </property>
