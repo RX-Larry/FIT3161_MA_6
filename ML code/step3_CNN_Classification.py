@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 ml
 '''
 from sklearn.model_selection import StratifiedKFold, train_test_split
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import MaxPooling2D, BatchNormalization, AveragePooling2D
 from tensorflow.keras.layers import Conv2D, Dense, Flatten, Dropout, Activation
@@ -196,19 +196,30 @@ if __name__ == '__main__':
     fc_data, labels = data['FC'], data['labels']
     
     X_train, X_valid, X_test, y_train, y_valid, y_test = train_valid_test_split(fc_data, labels)
+    X_train = X_train[...,None]
+    X_valid = X_valid[...,None]
     X_test  = X_test[...,None]
     
     model = load_model('./cnn_models/best_model.hdf5')
-    # predictions = model.predict(x_test,verbose=0).squeeze()
-    # y_pred = [1 if predictions[i] >= 0.5 else 0 for i in range(len(predictions))]
+    predictions = model.predict(X_test,verbose=0).squeeze()
+    y_pred = [1 if predictions[i] >= 0.5 else 0 for i in range(len(predictions))]
     # predictions = model.predict(xtest,verbose=0).squeeze()
      
-    # acc = accuracy_score(y_test, y_pred)
+    acc = accuracy_score(y_test, y_pred)
+    Pre = precision_score(y_test,y_pred) 
+    Rec = recall_score(y_test,y_pred)
+    F1 = f1_score(y_test,y_pred)
+    ROC = roc_auc_score(y_test,y_pred)
     
-    # _info('Print Results')
-    # print('Test Acccuracy = {:.2%}'.format(acc))
     
-    test_loss, test_acc = model.evaluate(X_test,  y_test, verbose=1, batch_size=64)
-    print("Test acc is {}".format(test_acc))
+    _info('Print Results of CNN model')
+    print('Test Acccuracy = {:.2%}'.format(acc))
+    print('Precision = {:.2%}'.format(Pre))
+    print('Recall    = {:.2%}'.format(Rec))
+    print('F1_score  = {:.2%}'.format(F1))
+    print('ROC_AUC  = {:.2%}'.format(ROC))
+    
+    # test_loss, test_acc = model.evaluate(X_train,  y_train, verbose=1, batch_size=64)
+    # print("Test acc is {}".format(test_acc))
 
     print('finished!')
