@@ -20,7 +20,7 @@ from sklearn import model_selection
 import tensorflow as tf
 from tensorflow.keras import Model
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.layers import Dense, Conv1D, MaxPool1D, Dropout, Flatten
+from tensorflow.keras.layers import Dense, Conv1D, MaxPooling1D, MaxPooling2D, Dropout, Flatten, BatchNormalization
 from tensorflow.keras.utils import plot_model
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 import pickle
@@ -103,9 +103,9 @@ def build_graphs(node_feat,adj_data):
 def load_data():
     with open(args.input_data,'rb') as f:
         conn_data = pickle.load(f)
-    tangent_matrices = conn_data['FC']
+    conn_matrices = conn_data['FC']
     labels = conn_data['labels']
-    graphs = build_graphs(tangent_matrices,tangent_matrices)
+    graphs = build_graphs(conn_matrices,conn_matrices)
     return graphs, pd.Series(labels)
 
 def create_model(generator):
@@ -114,16 +114,21 @@ def create_model(generator):
          activations=["relu", "relu"],
          generator=generator,
          dropout=0.5
+         
          )
     x_inp, x_out = gc_model.in_out_tensors()
-    predictions = Dense(units=32, activation="relu")(x_out)
+    predictions = BatchNormalization(momentum=0.9)
+    predictions = Flatten()(x_out)
+    predictions = Dense(units=64, activation="relu")(predictions)
+    predictions = Dense(units=32, activation="relu")(predictions)
     predictions = Dense(units=16, activation="relu")(predictions)
     predictions = Dense(units=1, activation="sigmoid")(predictions)
 
     # Let's create the Keras model and prepare it for training
     model = Model(inputs=x_inp, outputs=predictions)
-    model.compile(optimizer=Adam(0.01), loss='binary_crossentropy', 
+    model.compile(optimizer=Adam(0.001), loss='binary_crossentropy', 
                  metrics=["accuracy"])
+    
     plot_model(model, to_file=MODEL_DIR+'gcn_model.png', show_shapes=True)
     return model
 

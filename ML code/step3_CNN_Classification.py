@@ -24,6 +24,8 @@ from tensorflow.keras.layers import Conv2D, Dense, Flatten, Dropout, Activation
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.models import load_model
+import tensorflow as tf
+import math
 
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import EarlyStopping
@@ -201,25 +203,55 @@ if __name__ == '__main__':
     X_test  = X_test[...,None]
     
     model = load_model('./cnn_models/best_model.hdf5')
-    predictions = model.predict(X_test,verbose=0).squeeze()
-    y_pred = [1 if predictions[i] >= 0.5 else 0 for i in range(len(predictions))]
-    # predictions = model.predict(xtest,verbose=0).squeeze()
+    # predictions = model.predict(X_test,verbose=0).squeeze()
+    # y_pred = [1 if predictions[i] >= 0.5 else 0 for i in range(len(predictions))]
+    # # predictions = model.predict(xtest,verbose=0).squeeze()
      
-    acc = accuracy_score(y_test, y_pred)
-    Pre = precision_score(y_test,y_pred) 
-    Rec = recall_score(y_test,y_pred)
-    F1 = f1_score(y_test,y_pred)
-    ROC = roc_auc_score(y_test,y_pred)
+    # acc = accuracy_score(y_test, y_pred)
+    # Pre = precision_score(y_test,y_pred) 
+    # Rec = recall_score(y_test,y_pred)
+    # F1 = f1_score(y_test,y_pred)
+    # ROC = roc_auc_score(y_test,y_pred)
     
     
-    _info('Print Results of CNN model')
-    print('Test Acccuracy = {:.2%}'.format(acc))
-    print('Precision = {:.2%}'.format(Pre))
-    print('Recall    = {:.2%}'.format(Rec))
-    print('F1_score  = {:.2%}'.format(F1))
-    print('ROC_AUC  = {:.2%}'.format(ROC))
+    # _info('Print Results of CNN model')
+    # print('Test Acccuracy = {:.2%}'.format(acc))
+    # print('Precision = {:.2%}'.format(Pre))
+    # print('Recall    = {:.2%}'.format(Rec))
+    # print('F1_score  = {:.2%}'.format(F1))
+    # print('ROC_AUC  = {:.2%}'.format(ROC))
     
     # test_loss, test_acc = model.evaluate(X_train,  y_train, verbose=1, batch_size=64)
     # print("Test acc is {}".format(test_acc))
+            
+    # plt.figure()
+    # plt.imshow(X_train[1])
+            
+    # show output of the conv2D layers
+    def visualize_feature_maps(input_img=None, true_label=None, model=None, layer_name=None, n_cols=8):
+        class_names = ['autism', 'normal']
+        if len(input_img.shape)==3:
+            batch_input_img = tf.expand_dims(input_img, axis =0)  #make it a 4D tensor with batch_size=1
+        intermediate_model = tf.keras.Model(inputs=model.input, outputs=model.get_layer(layer_name).output)
+        intermediate_output = intermediate_model.predict(batch_input_img)
+        n_feature_maps = intermediate_output.shape[-1]
+        n_images = math.floor(n_feature_maps) + 1
+        n_rows = math.ceil(n_images/n_cols)
+        fig = plt.figure(figsize=(n_cols*1.5, n_rows*1.5))
+        plt.axis("off")
+        for i in range(n_images):
+            plt.subplot(n_rows, n_cols, i+1)
+            img = input_img if i==0 else intermediate_output[0,:,:,i-1]
+            label = "{}".format(class_names[true_label]) if i==0 else "{} of {}".format(i, n_feature_maps)
+            if i==0:
+                plt.imshow(img)
+            else:
+                plt.imshow(img, cmap= "gray")
+            plt.xlabel(label, fontsize= 10)
+            plt.xticks([])
+            plt.yticks([])
+            plt.grid(False)
+
+    visualize_feature_maps(X_test[20], y_test[20], model, model.layers[2].name)
 
     print('finished!')
