@@ -58,6 +58,8 @@ def build_graphs(node_feat,adj_data):
     min_T = np.min([item.shape[1] for item in node_feat])#assuming last dim is Time
     for A,X in zip(adj_data,node_feat):
         A_thr = threshold_proportional(A, 0.25)# adjacency matrix
+        np.fill_diagonal(A_thr,1) # add selve-connectins to avoid zero in-degree nodes
+        assert np.sum(A_thr, axis=0).all()
         A_df = conv2list(A_thr)
         timeseries = X[:min_T]# node features (ROI,Time)
         X_df = pd.DataFrame(timeseries)
@@ -73,7 +75,7 @@ class Worker(QObject):
     prediction = pyqtSignal(str)
     showPlot = pyqtSignal()
 
-    # A run method that contains all the model prediction related code.
+    # A run method that contains and run all the model prediction related code.
     def run(self):
         global img
 
@@ -92,36 +94,37 @@ class Worker(QObject):
 
         self.prediction.emit("Computing the corresponding linear component combination in whole-brain voxel space...")
 
-        # Using a masker to project into the 3D space
+        # Using a masker to project into the 3D space.
         components = canica.masker_.inverse_transform(canica.components_)
 
         self.progress.emit(91)
 
         self.prediction.emit("Extracting the brain regions time series...")
 
-        # Using a filter to extract the regions time series 
+        # Using a filter to extract the regions time series.
         masker = input_data.NiftiMapsMasker(components, smoothing_fwhm=6,
                                             standardize=False, detrend=True,
                                             t_r=2.5, low_pass=0.1,
                                             high_pass=0.01)
 
-        # Extracting the time series of the user input fMRI data
+        # Extracting the time series of the user input fMRI data.
         time_series = [masker.fit_transform(img)]
 
         self.progress.emit(94)
 
         self.prediction.emit("Building the connectivity matrix from the time series...")
 
-        # Building the correlation matrix from the time series
+        # Building the correlation matrix from the time series.
         correlation_measure = ConnectivityMeasure(kind='correlation')
         correlation_matrix = correlation_measure.fit_transform(time_series)
+        # Plotting and saving the connectivity matrix.
         connectivity_plot=plotting.plot_matrix(correlation_matrix[0], labels=range(1,112), colorbar=True,
                   vmax=0.8, vmin=-0.8)
         connectivity_plot.figure.savefig('matrix.png')
 
-        #Getting the center coordinates from the component decomposition to use as atlas labels
+        # Getting the center coordinates from the component decomposition to use as atlas labels.
         coords = plotting.find_probabilistic_atlas_cut_coords(components)
-        #Plotting the connectome with 80% edge strength in the connectivity
+        # Plotting, saving and displaying the connectome with 80% edge strength in the connectivity.
         connectome_plot=plotting.plot_connectome(correlation_matrix[0], coords, edge_threshold="50%", title='Correlation between 111 brain regions')
         connectome_plot.savefig('connectome.png')
         self.showPlot.emit()
@@ -138,6 +141,7 @@ class Worker(QObject):
         saved_model = tf.keras.models.load_model("model/gcn_model")
         # Predicting the label of the user input fMRI
         result=saved_model.predict(test_gen, verbose=0).squeeze()
+        # Displaying the result of the prediction onto the UI.
         result_text="Result: The probability that Autism Spectrum Disorder Category was detected in the subject is " + "{:.0%}".format(result) + "."
         if result >=0.5:
             self.prediction.emit(result_text + " \nTherefore, it can be concluded that the subject has Autism Spectrum Disorder.")
@@ -165,6 +169,8 @@ class AutismClassifier(QMainWindow):
             lambda status, n_size=n: self.progressBarLoading(n_size)
         )
         self.filename=None
+
+        # Adding visualisation options to the combo box.
         vis_list=["", "Connectivity Matrix", "Connectome on Top of The Brain Class Schematics"]
         self.visComboBox.addItems(vis_list)
         self.visComboBox.setDisabled(True)
@@ -230,7 +236,7 @@ class AutismClassifier(QMainWindow):
                 self.visComboBox.setDisabled(True)
                 self.visComboBox.setCurrentText("")
 
-                # Enabling back the buttons after the model finished predicting
+                # Enabling back the buttons and combo box after the model finished predicting
                 self.thread.finished.connect(
                     lambda: self.runProgramButton.setDisabled(False)
                 )
@@ -265,13 +271,17 @@ class AutismClassifier(QMainWindow):
         self.diagram.setPixmap(pixmap)
         self.diagram.resize(700,500)
 
+    # A method that display the visualisation selected by the user from the combo box.
     def selectVisToDisplay(self):
         current_vis=self.visComboBox.currentText()
+        # If the selected visualisation is the connectivity matrix then display it.
         if (current_vis=="Connectivity Matrix"):
             pixmap = QPixmap('matrix.png')
+        # If the selected visualisation is the connectome then display it.
         elif (current_vis=="Connectome on Top of The Brain Class Schematics"):
             pixmap = QPixmap('connectome.png')
 
+        # Only display the visualisation if it is either the connectivity matrix or the connectome.
         if (current_vis in ["Connectivity Matrix", "Connectome on Top of The Brain Class Schematics"]):
             self.diagram.setPixmap(pixmap)
             self.diagram.resize(700,500)
