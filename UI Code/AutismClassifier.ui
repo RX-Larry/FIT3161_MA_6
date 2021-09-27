@@ -431,7 +431,6 @@ QProgressBar::chunk {
     <property name="title">
      <string>Help</string>
     </property>
-    <addaction name="actionDocumentation"/>
     <addaction name="actionUser_Guide"/>
     <addaction name="actionAbout"/>
    </widget>
