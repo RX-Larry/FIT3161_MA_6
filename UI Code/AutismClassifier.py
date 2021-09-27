@@ -138,7 +138,7 @@ class Worker(QObject):
         generator = PaddedGraphGenerator(graphs=graphs)
         test_gen=generator.flow([0])
         # Loading the model
-        saved_model = tf.keras.models.load_model("model/gcn_model")
+        saved_model = tf.keras.models.load_model("model/gcn_model/best_model.hdf5")
         # Predicting the label of the user input fMRI
         result=saved_model.predict(test_gen, verbose=0).squeeze()
         # Displaying the result of the prediction onto the UI.

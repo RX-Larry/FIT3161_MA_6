@@ -5,6 +5,7 @@
 import pickle
 from nilearn.connectome import ConnectivityMeasure
 import matplotlib.pyplot as plt
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 # Load data from the pickle file
 datapath = 'data/abide_proc_filt_glob.pkl'
@@ -31,13 +32,20 @@ labels[labels>1]=0
 # Tangent
 tangent_estimator = ConnectivityMeasure(kind='correlation')
 tangent_matrices = tangent_estimator.fit_transform(ts_data)
+    
+# datagen = ImageDataGenerator(horizontal_flip=True, width_shift_range=0.1, height_shift_range=0.1)
+# tangent_matrices = tangent_matrices.reshape((871, 111, 111, 1))
+# print(tangent_matrices.shape)
+# datagen.fit(tangent_matrices)
+
+# it = datagen.flow(tangent_matrices, labels)
 
 #Plot the correlations for the first 40 subjects
-for i in range(40):
-    plt.figure(figsize=(8,6))
-    plt.imshow(tangent_matrices[i], vmax=.80, vmin=-.80, cmap='RdBu_r')
-    plt.colorbar()
-    plt.title('Connectivity matrix of subject {} with label {}'.format(i, labels[i]))
+# for i in range(40):
+    # plt.figure(figsize=(8,6))
+    # plt.imshow(next(it), vmax=.80, vmin=-.80, cmap='RdBu_r')
+    # plt.colorbar()
+    # plt.title('Connectivity matrix of subject {} with label {}'.format(i, labels[i]))
 
 # save the connectivity matrices and labels as a dictionary into a pickle file   
 conn_data = {}

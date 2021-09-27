@@ -110,7 +110,7 @@ def load_data():
 
 def create_model(generator):
     gc_model = GCNSupervisedGraphClassification(
-         layer_sizes=[111, 111],
+         layer_sizes=[100, 100],
          activations=["relu", "relu"],
          generator=generator,
          dropout=0.5
