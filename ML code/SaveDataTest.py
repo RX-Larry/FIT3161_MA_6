@@ -5,7 +5,6 @@ Created on Tue Sep 28 19:46:34 2021
 @author: peijiun
 """
 
-import pytest
 import os
 import sklearn
 from SaveData import  load_data, preprocess_data, save_data
