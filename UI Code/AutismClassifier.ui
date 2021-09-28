@@ -396,7 +396,7 @@ QProgressBar::chunk {
        </font>
       </property>
       <property name="text">
-       <string>Confidence Level: 60%</string>
+       <string>Model Accuracy: 60%</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
