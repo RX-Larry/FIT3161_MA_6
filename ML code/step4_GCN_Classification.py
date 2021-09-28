@@ -47,7 +47,8 @@ def _info(s):
     print('---')
 
 def threshold_proportional(W, p, copy=True):
-    assert p < 1 or p > 0
+    if p >= 1 or p <= 0:
+        raise ValueError("Threshold value should be between 0 and 1")
     if copy:
         W = W.copy()
     n = len(W)                        # number of nodes
@@ -72,16 +73,16 @@ def conv2list(adj_m):
         """
         converts adjacency matrix to adj list to load into stellargraph
         """
-        
         # find non-zero elements in adj_mat
+        if (len(adj_m) == 0):
+            raise ValueError("Invalid adjacency matrix")
+            
         indices = np.argwhere(adj_m)
         src, dsts = indices[:,0].reshape(-1, 1),indices[:,1].reshape(-1, 1)
         v = adj_m[src,dsts].reshape(-1, 1)
         final = np.concatenate((src, dsts, v), axis=1)
         d = pd.DataFrame(final)
         d.columns = ['source', 'target', 'weight']
-        
-            
         return d
 
 def build_graphs(node_feat,adj_data):
@@ -90,13 +91,13 @@ def build_graphs(node_feat,adj_data):
     for A,X in zip(adj_data,node_feat):
         A_thr = threshold_proportional(A, 0.25)# adjacency matrix
         np.fill_diagonal(A_thr,1) # add selve-connectins to avoid zero in-degree nodes
-        assert np.sum(A_thr, axis=0).all()
+        if np.sum(A_thr, axis=0).all() == False:
+            raise ValueError("All the nodes are not connected")
         A_df = conv2list(A_thr)
         timeseries = X[:min_T]# node features (ROI,Time)
         X_df = pd.DataFrame(timeseries)
         G = StellarGraph(X_df, A_df)
         graphs.append(G)
-        
     return graphs
         
 
@@ -202,7 +203,7 @@ def run():
     plt.ylim([0.6, 2.5])
     plt.show()
     
-    # model.save("model/gcn_model")
+    model.save("models/gcn")
     
      #prediction
     _info('Test GCN model')
