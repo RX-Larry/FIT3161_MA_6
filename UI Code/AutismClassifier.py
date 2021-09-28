@@ -198,7 +198,7 @@ class AutismClassifier(QMainWindow):
         global img
 
         # If the user did not insert any file to the app and he pressed 'Run program', then display error message
-        if (self.filename==None):
+        if (self.filename==None or self.filename[0]==""):
             self.fileErrorLabel.setText("Please insert a nii.gz format compressed fMRI data file")
         else:
             # If the format of the file insert by the user is not nii.gz and he pressed 'Run program', then display error message
@@ -257,6 +257,8 @@ class AutismClassifier(QMainWindow):
         self.diagram.clear()
         self.progressBar.setValue(0)
         self.resultLabel.clear()
+        self.visComboBox.setDisabled(True)
+        self.visComboBox.setCurrentText("")
         for vis_file in ["matrix.png", "connectome.png"]:
             if os.path.exists(vis_file):
                 os.remove(vis_file)
