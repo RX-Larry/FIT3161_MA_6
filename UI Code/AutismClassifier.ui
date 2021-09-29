@@ -250,6 +250,21 @@ QProgressBar::chunk {
      </layout>
     </item>
     <item>
+     <widget class="QLabel" name="label">
+      <property name="font">
+       <font>
+        <pointsize>10</pointsize>
+       </font>
+      </property>
+      <property name="text">
+       <string>DO NOT PANIC IF IT LOOKS STUCK</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item>
      <spacer name="verticalSpacer_4">
       <property name="orientation">
        <enum>Qt::Vertical</enum>
@@ -424,7 +439,7 @@ QProgressBar::chunk {
      <x>0</x>
      <y>0</y>
      <width>978</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuHelp">
