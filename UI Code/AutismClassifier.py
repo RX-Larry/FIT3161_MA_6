@@ -193,6 +193,9 @@ class AutismClassifier(QMainWindow):
         # opens about window
         self.actionAbout.triggered.connect(self.openAboutWindow)
 
+        # opens user guide window
+        self.actionUser_Guide.triggered.connect(self.openUserGuideWindow)
+
         # connecting a method that implements the progress bar's logic to the progress bar
         n = 100
         self.runProgramButton.clicked.connect(
@@ -214,12 +217,21 @@ class AutismClassifier(QMainWindow):
         aboutPage = QMessageBox()
         aboutPage.setWindowTitle("About")
         aboutPage.setIcon(QMessageBox.Information)
-        aboutPage.setText("Autism Classifier")
+        aboutPage.setText('<p style="font-size:11pt;">Autism Classifier</p>')
         aboutPage.setInformativeText(
             "Project Manager: Lim Tzeyi\nTech Lead: Adrian Tham Wai Yeen\nQuality Assurance: Chong Pei Jiun\nSoftware Date: \nGitHub: https://github.com/RX-Larry/FIT3161_MA_6"
         )
+        aboutPage.exec_()
 
-        x = aboutPage.exec_()
+    def openUserGuideWindow(self):
+        guidePage = QMessageBox()
+        guidePage.setWindowTitle("User Guide")
+        guidePage.setIcon(QMessageBox.Question)
+        guidePage.setText('<p style="font-size:13pt;">User Guide</p>')
+        guidePage.setInformativeText(
+            '<p style="font-size:12pt;">Steps to start the prediction process:</p> <p style="font-size:11pt;">1. Click on the "Browse Files" button.</p> <p style="font-size:11pt;">2. Navigate to the location that contains the fMRI data file in .nii.gz format for prediction using the popup File Explorer.</p> <p style="font-size:11pt;">3. Open the file and the path to the selected file should be displayed in the file path text box.</p> <p style="font-size:11pt;">4. Once the fMRI data file is opened in the app, click on the "Run Program" button and the prediction will be started. It should take at least 9 minutes for the prediction to complete.</p> <p style="font-size:12pt;">How to select a visualisation to view?</p> <p style="font-size:11pt;">Once the prediction process is completed, you can click on the Visualisation dropdown menu to select the desired visualisation to view.</p> <p style="font-size:11pt;">Note: Please refer to the user guide document for a more detailed user guide.</p>'
+        )
+        guidePage.exec_()
 
     # A method that implements the functionality of openning a file for the "Browse Files" button.
     def browseFiles(self):
