@@ -256,22 +256,22 @@ if __name__ == '__main__':
     
     args = parser.parse_args()
     
-    # load_data()
-    # run()
+    load_data()
+    run()
     
-    with open(args.input_data,'rb') as f:
-        conn_data = pickle.load(f)
-    tangent_matrices = conn_data['FC']
-    labels = conn_data['labels']
+    # with open(args.input_data,'rb') as f:
+    #     conn_data = pickle.load(f)
+    # tangent_matrices = conn_data['FC']
+    # labels = conn_data['labels']
     
-    graphs = build_graphs([tangent_matrices[0]],[tangent_matrices[0]])
-    labels = pd.Series(labels[0])
+    # graphs = build_graphs([tangent_matrices[0]],[tangent_matrices[0]])
+    # labels = pd.Series(labels[0])
 
-    generator = PaddedGraphGenerator(graphs=graphs)
-    test_gen=generator.flow([0], labels)
+    # generator = PaddedGraphGenerator(graphs=graphs)
+    # test_gen=generator.flow([0], labels)
     
-    saved_model = tf.keras.models.load_model("models/gcn")
-    
-    predictions=saved_model.predict(test_gen, verbose=0).squeeze()
-    print("Prediction class = {:.2}".format(predictions))
+    # saved_model = tf.keras.models.load_model("model/gcn_model")
+    # saved_model.summary()
+    # predictions=saved_model.predict(test_gen, verbose=0).squeeze()
+    # print("Prediction class = {:.2}".format(predictions))
     print('finished!')
