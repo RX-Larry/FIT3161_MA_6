@@ -70,16 +70,31 @@ def build_graphs(node_feat, adj_data):
 
     return graphs
 
-
-# A worker class that will contain the model prediction code.
 class Worker(QObject):
+    '''
+    A worker class that will run the model classification code.
+
+    Attributes:
+        finished (pyqtSignal): A pyqtSignal that sends a finished signal to the main thread.
+        progress (pyqtSignal): A pyqtSignal that sends the progress status to the main thread.
+        prediction (pyqtSignal): A pyqtSignal that sends the progress messages and classification results to the main thread.
+        showPlot (pyqtSignal): A pyqtSignal that sends a  signal to the main thread to display the brain connectome.
+    '''
     finished = pyqtSignal()
     progress = pyqtSignal(int)
     prediction = pyqtSignal(str)
     showPlot = pyqtSignal()
 
-    # A run method that contains and run all the model prediction related code.
     def run(self):
+        '''
+        A method that contains the model classification code which will be run by worker thread.
+
+        Args: None
+
+        Raises: None
+
+        Returns: None
+        '''
         global img
 
         self.prediction.emit("Applying CanICA on the fMRI data...")
@@ -160,7 +175,7 @@ class Worker(QObject):
         saved_model = tf.keras.models.load_model("model/gcn_model")
         # Predicting the label of the user input fMRI
         result = saved_model.predict(test_gen, verbose=0).squeeze()
-        # Displaying the result of the prediction onto the UI.
+        # Displaying the result of the classification onto the UI.
         result_text = (
             "Result: The probability that Autism Spectrum Disorder Category was detected in the subject is "
             + "{:.0%}".format(result)
