@@ -47,6 +47,24 @@ def _info(s):
     print('---')
 
 def threshold_proportional(W, p, copy=True):
+    """
+    Convert values less than the threshold value to 0
+
+    Parameters
+    ----------
+    W : 2D array, connevtivity matrix to be thresholded.
+    p : float value between 0 and 1, Cell Value less than threshold value will be set to 0.
+    copy : boolean, optional, The default is True.
+
+    Raises
+    ------
+    ValueError, If the threshold is not within 0 and 1.
+
+    Returns
+    -------
+    W : Thresholded 2D array, A matrix that does not contains negative values.
+
+    """
     if p >= 1 or p <= 0:
         raise ValueError("Threshold value should be between 0 and 1")
     if copy:
@@ -70,22 +88,57 @@ def threshold_proportional(W, p, copy=True):
     return W
 
 def conv2list(adj_m):
-        """
-        converts adjacency matrix to adj list to load into stellargraph
-        """
-        # find non-zero elements in adj_mat
-        if (len(adj_m) == 0):
-            raise ValueError("Invalid adjacency matrix")
-            
-        indices = np.argwhere(adj_m)
-        src, dsts = indices[:,0].reshape(-1, 1),indices[:,1].reshape(-1, 1)
-        v = adj_m[src,dsts].reshape(-1, 1)
-        final = np.concatenate((src, dsts, v), axis=1)
-        d = pd.DataFrame(final)
-        d.columns = ['source', 'target', 'weight']
-        return d
+    """
+    converts adjacency matrix to adj list to load into stellargraph
+
+    Parameters
+    ----------
+    adj_m : 2D array to be converted to adjacency list.
+
+    Raises
+    ------
+    ValueError
+        if connectivity matrix has length 0.
+
+    Returns
+    -------
+    d : DataFrame.
+
+    """
+    # find non-zero elements in adj_mat
+    if (len(adj_m) == 0):
+        raise ValueError("Invalid adjacency matrix")
+
+    indices = np.argwhere(adj_m)
+    src, dsts = indices[:,0].reshape(-1, 1),indices[:,1].reshape(-1, 1)
+    v = adj_m[src,dsts].reshape(-1, 1)
+    final = np.concatenate((src, dsts, v), axis=1)
+    d = pd.DataFrame(final)
+    d.columns = ['source', 'target', 'weight']
+    return d
 
 def build_graphs(node_feat,adj_data):
+    """
+    Convert adjacency list to graphs
+
+    Parameters
+    ----------
+    node_feat : 2D array
+        where each row represent a node features for the brain region.
+    adj_data : 2D array
+        adjacency matrix.
+
+    Raises
+    ------
+    ValueError
+        if all the nodes are not connected.
+
+    Returns
+    -------
+    graphs : Stellargraph Object
+        to be used as an input later to the GNN model.
+
+    """
     graphs = []
     min_T = np.min([item.shape[1] for item in node_feat])#assuming last dim is Time
     for A,X in zip(adj_data,node_feat):
