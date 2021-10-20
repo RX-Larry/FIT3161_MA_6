@@ -17,6 +17,24 @@ img = None
 
 
 def threshold_proportional(W, p, copy=True):
+    """
+    Convert values less than the threshold value to 0
+
+    Parameters
+    ----------
+    W : 2D array, connevtivity matrix to be thresholded.
+    p : float value between 0 and 1, Cell Value less than threshold value will be set to 0.
+    copy : boolean, optional, The default is True.
+
+    Raises
+    ------
+    ValueError, If the threshold is not within 0 and 1.
+
+    Returns
+    -------
+    W : Thresholded 2D array, A matrix that does not contains negative values.
+
+    """
     assert p < 1 or p > 0
     if copy:
         W = W.copy()
@@ -42,6 +60,20 @@ def threshold_proportional(W, p, copy=True):
 def conv2list(adj_m):
     """
     converts adjacency matrix to adj list to load into stellargraph
+
+    Parameters
+    ----------
+    adj_m : 2D array to be converted to adjacency list.
+
+    Raises
+    ------
+    ValueError
+        if connectivity matrix has length 0.
+
+    Returns
+    -------
+    d : DataFrame.
+
     """
 
     # find non-zero elements in adj_mat
@@ -56,6 +88,27 @@ def conv2list(adj_m):
 
 
 def build_graphs(node_feat, adj_data):
+    """
+    Convert adjacency list to graphs
+
+    Parameters
+    ----------
+    node_feat : 2D array
+        where each row represent a node features for the brain region.
+    adj_data : 2D array
+        adjacency matrix.
+
+    Raises
+    ------
+    ValueError
+        if all the nodes are not connected.
+
+    Returns
+    -------
+    graphs : Stellargraph Object
+        to be used as an input later to the GNN model.
+
+    """
     graphs = []
     min_T = np.min([item.shape[1] for item in node_feat])  # assuming last dim is Time
     for A, X in zip(adj_data, node_feat):
@@ -74,11 +127,16 @@ class Worker(QObject):
     '''
     A worker class that will run the model classification code.
 
-    Attributes:
-        finished (pyqtSignal): A pyqtSignal that sends a finished signal to the main thread.
-        progress (pyqtSignal): A pyqtSignal that sends the progress status to the main thread.
-        prediction (pyqtSignal): A pyqtSignal that sends the progress messages and classification results to the main thread.
-        showPlot (pyqtSignal): A pyqtSignal that sends a  signal to the main thread to display the brain connectome.
+    Attributes
+    ----------
+    finished: pyqtSignal
+        An pyqtSignal object that sends a finished signal to the main thread.
+    progress: pyqtSignal
+        An pyqtSignal object that sends the progress status to the main thread.
+    prediction: pyqtSignal
+        An pyqtSignal object that sends the progress messages and classification results to the main thread.
+    showPlot: pyqtSignal
+        An pyqtSignal object that sends a  signal to the main thread to display the brain connectome.
     '''
     finished = pyqtSignal()
     progress = pyqtSignal(int)
@@ -89,11 +147,17 @@ class Worker(QObject):
         '''
         A method that contains the model classification code which will be run by worker thread.
 
-        Args: None
+        Parameters
+        ----------
+        None
 
-        Raises: None
+        Raises
+        ------
+        None
 
-        Returns: None
+        Returns
+        -------
+        None
         '''
         global img
 
